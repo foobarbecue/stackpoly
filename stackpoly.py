@@ -32,24 +32,33 @@ def get_user_ids(site = 'stackoverflow', min_rep = 10000, page = 1, key=None, fi
     # return ids, high_reps_resp_jsons
 
 @fn_cache.cache
-def get_associated_net_users(user_ids, page=1, key=None, filter=None):
+def get_accounts(user_ids, key=None, filter=None):
     ids_semicolon_delimited = ";".join([str(id) for id in user_ids])
-    net_ids_parameters = {'pagesize':100, 'page': page, 'key': key, 'filter':filter}
-    net_ids_req = requests.get(
-        r"https://api.stackexchange.com/2.2/users/{}/associated".format(ids_semicolon_delimited),
-        params=net_ids_parameters)
-    return net_ids_req.json()
+    page = 0
+    user_accounts = []
+    while True:
+        page += 1
+        account_ids_parameters = {'pagesize':100, 'page': page, 'key': key, 'filter':filter}
+        account_ids_req = requests.get(
+            r"https://api.stackexchange.com/2.2/users/{}/associated".format(ids_semicolon_delimited),
+            params=account_ids_parameters)
+        account_ids_json = account_ids_req.json()
+        user_accounts += account_ids_json['items']
+        if not account_ids_json['has_more']:
+            break
+    ipdb.set_trace()
+    return account_ids_json
 
-def get_all_pages_net_users(sites=['earthscience','music'], min_rep=10000, key=key):
+def get_all_pages_net_users(sites=['earthscience','music'], min_rep=1000, key=key):
     page = 0
     net_users_dfs = []
     for site in sites:
         while True:
             page += 1
             user_ids_json = get_user_ids(site=site, min_rep=min_rep, page=page, key=key)
-            ids = [item['account_id'] for item in user_ids_json['items']]
-            if ids:
-                net_users_page_json = get_associated_net_users(ids, key=key)
+            user_ids = [item['account_id'] for item in user_ids_json['items']]
+            if user_ids:
+                net_users_page_json = get_accounts(user_ids, key=key)
                 net_users_dfs.append(pandas.DataFrame(net_users_page_json['items']))
             if not user_ids_json['has_more']:
                 break
