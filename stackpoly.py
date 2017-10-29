@@ -7,6 +7,7 @@ finished = False
 
 count_filter = '!*Mx9qn.DLTGmNI0t'
 user_id_only_filter = '!T6o*9ZK8_erLEeMPOT'
+key = 'wk8Ekfg)gRCUZqy6gDJ6rQ(('
 
 def get_user_ids(site = 'stackoverflow', min_rep = 10000, page = 1, key=None, filter=user_id_only_filter):
     high_reps_parameters = {'page': page, 'sort': 'reputation', 'min': min_rep, 'site': site, 'pagesize': 100,
@@ -28,7 +29,7 @@ def get_associated_net_users(user_ids, page=1, key=None, filter=None):
         params=net_ids_parameters)
     return net_ids_req.json()
 
-def get_all_pages_net_users(site='earthscience', min_rep=10000, key='wk8Ekfg)gRCUZqy6gDJ6rQ(('):
+def get_all_pages_net_users(site='earthscience', min_rep=10000, key=key):
     page = 0
     net_users_dfs = []
     while True:
@@ -42,6 +43,16 @@ def get_all_pages_net_users(site='earthscience', min_rep=10000, key='wk8Ekfg)gRC
             break
     return pandas.concat(net_users_dfs, ignore_index=True)
 
+def plot_num_polymaths(net_users_df):
+    import seaborn
+    user_sites = net_users_df.pivot(index='account_id', columns='site_name', values='reputation')
+    (user_sites > 300).sum(axis='columns')
+
+def plot_corr_mat(net_users_df):
+    import seaborn
+    user_sites = net_users_df.pivot(index='account_id', columns='site_name', values='reputation')
+    corr_mat = user_sites.fillna(0).corr()
+    seaborn.heatmap(corr_mat, xticklabels=corr_mat.columns.values, yticklabels=corr_mat.columns.values)
     # net_ids_combined = get_net_ids()
     # user_sites = net_ids_combined.pivot(index='account_id', columns='site_name', values='reputation')
     # correlation_matrix = user_sites.fillna(0).corr()
