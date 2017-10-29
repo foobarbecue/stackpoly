@@ -7,7 +7,7 @@ net_ids_responses = []
 finished = False
 
 count_filter = '!*Mx9qn.DLTGmNI0t'
-user_id_only_filter = '!T6o*9ZK8_erLEeMPOT'
+user_id_only_filter = '!bWXkdAjeoQxEWi'
 key = 'wk8Ekfg)gRCUZqy6gDJ6rQ(('
 
 fn_cache = Memory(cachedir='cache')
@@ -47,13 +47,17 @@ def get_all_pages_net_users(sites=['earthscience','music'], min_rep=10000, key=k
         while True:
             page += 1
             user_ids_json = get_user_ids(site=site, min_rep=min_rep, page=page, key=key)
-            ids = [item['user_id'] for item in user_ids_json['items']]
+            ids = [item['account_id'] for item in user_ids_json['items']]
             if ids:
                 net_users_page_json = get_associated_net_users(ids, key=key)
                 net_users_dfs.append(pandas.DataFrame(net_users_page_json['items']))
             if not user_ids_json['has_more']:
                 break
     return pandas.concat(net_users_dfs, ignore_index=True)
+
+def plot_num_polymaths(net_users_df):
+    user_site_reps = net_users_df.pivot(index='account_id', columns='site_name', values='reputation')
+    (user_site_reps > 300).sum(axis='columns')
 
 def plot_corr_mat(net_users_df):
     import seaborn
